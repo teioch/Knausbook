@@ -1,0 +1,94 @@
+{% load url from future %}
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Knausbook v2.0</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<title>Knausbook 2.0</title>
+		
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>	
+		{% if messages %}
+    	<script type="text/javascript" src="http://projects.zoulcreations.com/jquery/growl/jquery.growl.js"></script>
+    	<script type="text/javascript">
+    		$(document).ready(function() {
+      		{% for message in messages %}
+        		message = "{{ message|linebreaksbr }}";
+					  $.growl.settings.displayTimeout = 4000;
+						$.growl.settings.noticeTemplate = ''
+						+ '<div style="z-index:42">'
+						+ '<div style="float: right; background-image: url({{ STATIC_URL }}style/images/normalTop.png); position: relative; width: 259px; height: 16px; margin: 0pt;"></div>'
+						+ '<div style="float: right; background-image: url({{ STATIC_URL }}style/images/normalBackground.png); position: relative; display: block; color: #ffffff; font-family: Arial; font-size: 12px; line-height: 14px; width: 259px; margin: 0pt;">' 
+						//+ '  <img style="margin: 14px; margin-top: 0px; float: left;" src="%image%" />'
+						//+ '  <h3 style="margin: 0pt; margin-left: 77px; padding-bottom: 10px; font-size: 13px;">%title%</h3>'
+						+ '  <p style="margin: 0pt 14px; margin-left: 30px; margin-right: 30px; font-size: 12px;">%message%</p>'
+						+ '</div>'
+						+ '<div style="float: right; background-image: url({{ STATIC_URL }}style/images//normalBottom.png); position: relative; width: 259px; height: 16px; margin-bottom: 10px;"></div>'
+						+ '</div>';
+						$.growl.settings.noticeCss = {
+						position: 'relative'
+						};
+
+						$.growl.settings.dockTemplate = '<div></div>';
+						$.growl.settings.dockCss = {
+							position: 'absolute',
+							bottom: '10px',
+							right: '10px',
+							width: '300px'
+						};
+						/*
+						The dockCss will allow you to 'dock' the notifications to a specific area
+						on the page, such as TopRight (the default) or TopLeft, perhaps even in a
+						smaller area with "overflow: scroll" enabled?
+						*/	
+						$.growl("", message);
+        	{% endfor %}
+      	});
+    	</script>
+  	{% endif %}
+		
+		{% block extra_scripts %}
+		{% endblock %}
+
+		<link href="{{ STATIC_URL }}style/default.css" rel="stylesheet" type="text/css" media="screen" />
+	</head>
+	<body>
+	<!-- start header -->
+	
+	<div id="upbg"></div>
+	
+	<div id="outer">
+		<div id="header">
+			<div id="headercontent">
+				<h1>Knausbook v2.0</h1>
+			</div>
+		</div>
+
+		<div id="headerpic"></div>
+		
+		<div id="menu">
+			<ul>
+				<li class="active"><a href="{% url 'frontpage' %}">Forside</a></li>
+				<li><a href="{% url 'browse' %}">Bilder</a></li>
+				<li><a href="{% url 'tags' %}">Tags</a></li>
+				<li><a href="{% url 'comments' %}">Kommentarer</a></li>
+				<li><a href="{% url 'upload' %}">Last opp</a></li>
+				<li><a href="{% url 'profile' %}">Profil</a></li>
+				<li><a href="http://www.knauskoret.no">Knauskoret</a></li>
+				{% if user.is_authenticated %}<li><a href="{% url 'frontpage' %}?logout=true">Logg ut</a></li>{% endif %}
+			</ul>
+		</div>
+		<div id="menubottom"></div>
+			
+			
+		<div id="content">
+			{% block content %}
+			{% endblock %}
+		</div>
+		<!-- end page -->
+		<div id="footer">
+			<div class="left">&copy; 2012 Knausbook, by Geir Kihle Hanssen for Knauskoret. All rights reserved.</div>
+			<div class="right">Design by <a href="http://www.nodethirtythree.com/">NodeThirtyThree</a> + <a href="http://www.freecsstemplates.org">FCT</a>. Modified by Geir</div>
+		</div>
+	</div>
+	</body>
+</html>
