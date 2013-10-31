@@ -1,0 +1,32 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			<h3>Kommentarer</h3>
+			<br />
+			{% if comments.has_previous %}
+				<strong><a href="?page={{ comments.previous_page_number }}">Forrige</a></strong>
+			{% endif %}
+			<strong>Side {{ comments.number }} av {{ comments.paginator.num_pages }} </strong>
+			{% if comments.has_next %}
+				<strong><a href="?page={{ comments.next_page_number }}">Neste</a></strong>
+			{% endif %}
+			<p>&nbsp;</p>
+			{% for comment in comments %}
+				<a href="{% url 'view' comment.picture_id %}#opt">
+					<img src="{{ STATIC_URL }}style/images/viewpic.png" class="left" width="25px" style="padding:0.3em 0em 0em 0em"/>
+				</a>
+				<small>{{ comment.submitted|date }}</small><br />
+				<strong>{{ comment.user.first_name }}:</strong> {{ comment.comment }}
+				<br />
+				<br />
+				{% if not forloop.last %}
+				<!--<hr width="1000px"/>-->
+				{% endif %}
+				<br />
+			{% endfor %}
+		</div>
+	</div>
+{% endblock %}

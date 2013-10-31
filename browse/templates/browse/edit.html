@@ -1,0 +1,77 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block extra_scripts %}
+	<script type="text/javascript">
+  function disp_confirm(location) {
+    var answer = confirm("Er du sikker på at du vil fjerne dette bildet?");
+    if (answer) {
+        self.location = location;
+    }
+  }
+  </script>	
+{% endblock %}
+
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			<h2>Rediger bildedetaljer</h2>
+		</div>
+	</div>
+
+	<div class="divider1"</div>
+
+	<div id="primarycontainer">
+		<div id="primarycontent">
+			<div class="post">
+				<div class="contentarea">
+					{% if prev_image %}
+						<a href="{% url 'edit' prev_image.id %}#edit">Forrige bilde</a> -- 
+					{% endif %}
+					{% if next_image %}
+						<a href="{% url 'edit' next_image.id %}#edit">Neste bilde</a>
+					{% endif %}
+					<br /><br />
+					<h4>Legg til tag</h4>
+					<br />
+					<small>Kun tags som beskriver eventen bildet er fra, ellers blir det så veldig mange i lengden</small>
+					<br />
+					<small>Kun én tag om gangen (foreløpig)</small>
+					<br /><br />
+					<form action"." method="POST">
+						{% csrf_token %}
+						<input type="text" name="tag" placeholder="Tag" />
+						<input type="submit" value="Legg til" />
+					</form>
+					<p>&nbsp;</p>
+					<h4>Fjern tag</h4>
+					<br />
+					<br />
+					<form action"." method="POST">
+						{% csrf_token %}
+						<select name="remove_tag">
+							{% for tag in tags %}
+								<option value="{{ tag.title }}">{{ tag.title }}</option>
+							{% endfor %}
+						</select>
+						<input type="submit" value="Fjern" />
+					</form>
+					<a href="#" name="edit"></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="secondarycontent">
+		<div class="contentarea">
+			<img src="{{ MEDIA_URL }}gallery/thumb/{{ image.filename }}" width="230px"/>
+				<p>Tags: 
+				{% for tag in tags %}
+				{{ tag.title }}{% if not forloop.last %}, {% endif %}
+				{% endfor %}
+				</p>
+				<a href="#" onclick="disp_confirm('{% url "delete_image" image.id %}')" title="Slett bilde" >
+					<img src="{{ STATIC_URL }}style/images/red_delete.png" width="25px" style="float:right; padding: 0em 1em 0em 0em"/>
+				</a>
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			<h4>Støtte for å laste opp flere bilder på en gang. Bare marker alle bildene du vil på en gang</h4>
+			<p>&nbsp;</p>
+			<form action="." method="POST" enctype="multipart/form-data">
+				{% csrf_token %}
+				<input name="files" type="file" multiple="">
+				<input type="submit">
+			</form>
+		</div>
+	</div>
+{% endblock %}

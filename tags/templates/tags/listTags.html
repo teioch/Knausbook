@@ -1,0 +1,20 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			<h3>Inntil en sakling søkefunksjon kommer på plass er Ctrl+F en fin bil</h3>
+			<p>&nbsp;</p>
+			<table style="width:950px; text-align:center" >
+				<tr>
+					<td>
+						{% for tag in tags %}
+							<a href="expand/{{ tag.id }}">{{ tag.title }}</a>, 
+						{% endfor %}
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+{% block extra_scripts %}
+	<script type="text/javascript">
+  	$(function() {
+    	$(document).keydown(function (evt) {
+        if (evt.which == 37) {
+					evt.preventDefault();
+					{% if prev_image %}
+          	document.location = "{% url 'view' prev_image.id %}#opt";
+					{% endif %}
+					{% if prev_tag_image %}
+						document.location = "{% url 'tagview' t_id prev_tag_image.id %}#opt";
+					{% endif %}
+				}
+      });
+    });
+  </script>
+	<script type="text/javascript">
+		$(function() {
+			$(document).keydown(function (evt) {
+				if (evt.which == 39) {
+					evt.preventDefault();
+					{% if next_image %}
+						document.location = "{% url 'view' next_image.id %}#opt";
+					{% endif %}
+					{% if next_tag_image %}
+						document.location = "{% url 'tagview' t_id next_tag_image.id %}#opt";
+					{% endif %}
+				}
+			});
+		});
+	</script>
+	<script type="text/javascript">
+	function disp_confirm(location) {
+    var answer = confirm("Er du sikker på at du vil slette denne kommentaren?");
+    if (answer) {
+        self.location = location;
+    }
+	}
+	</script>	
+{% endblock %}
+
+{% block content %}
+	<div id="normalcontent">
+		<h3> </h3>
+		<div class="contentarea">
+		</div>
+	</div>
+	
+	<div id="primarycontainer">
+		<div id="primarycontent">
+			<div class="post">
+				<div class="contentarea">
+					<table>
+						<tr>
+							<td align="center" style="text-align:center">
+								{% if prev_image %}
+									<a href="{% url 'view' prev_image.id %}#opt">Forrige bilde</a>
+									-- 	
+								{% endif %}
+	 
+								{% if next_image %}
+									<a href="{% url 'view' next_image.id %}#opt">Neste bilde</a>
+								{% endif %}	
+		
+								{% if prev_tag_image %}
+									<a href="{% url 'tagview' t_id prev_tag_image.id %}#opt">Forrige bilde</a>
+								{% endif %}
+		
+								{% if next_tag_image %}
+									<a href="{% url 'tagview' t_id next_tag_image.id %}#opt">Neste bilde</a>
+								{% endif %}
+								<br />
+								<small>Det anbefales at du bruker piltastene (på tastaturet)</small>
+								<br /><br />
+								<a href="{{ MEDIA_URL }}gallery/fullsize/{{ image.filename }}" name="opt">
+									<img src="{{ MEDIA_URL }}gallery/medium/{{ image.filename }}" width="780px"/>
+								</a>
+								<p>&nbsp;</p>
+								Tags: 
+								{% for tag in tags %}
+									<a href="{% url 'expand' tag.id %}">{{ tag.title }}</a>{% if not forloop.last %}, {% endif %}
+								{% endfor %}
+								 -:- <a href="{% url 'edit' image.id %}#edit">Rediger bildedetaljer</a>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="secondarycontentforview">
+		<div class="box">
+			<h4>Kommentarer</h4>
+			<br /><br />
+			{% for comment in comments %}
+				{{ comment.user.first_name}} : {{comment.comment}}
+				{% if comment.user = currently_logged_in_as %}
+					{% if prev_image %}
+					<br /><a href="#" onclick='disp_confirm("{% url 'delete_comment' comment.id %}")' title="Slett kommentar"><img src="{{ STATIC_URL }}style/images/delete.png" style="float:right; width:15px"></a>
+					{% endif %}
+					{% if prev_tag_image %}
+					<br /><a href="#" onclick='disp_confirm("{% url 'tag_delete_comment' comment.id current_tag.id %}")' title="Slett kommentar"><img src="{{ MEDIA_URL }}style/images/delete.png" style="float:right; width:15px"></a>
+					{% endif %}
+				{% endif %}
+				<br /><br />
+				{% if not forloop.last %}
+					<hr width="200px">
+					<br />
+				{% endif %}
+			{% endfor %}
+			<br /><br />
+			<form action="." method="POST">
+				{% csrf_token %}
+				<textarea cols="23" name="comment"></textarea><br />
+				<input type="submit" value="Send inn" style="float:right; width:70px"/>
+				<br />
+			</form>
+		</div>	
+	</div>
+
+{% endblock %}

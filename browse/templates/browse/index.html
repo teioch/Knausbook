@@ -1,0 +1,43 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			{% if images.has_previous %}
+				<strong><a href="?page={{images.previous_page_number }}">Forrige</a></strong>
+		  {% endif %}
+           
+			<strong> Side {{ images.number }} av {{ images.paginator.num_pages }}.</strong>
+
+ 			{% if images.has_next %}
+				<strong><a href="?page={{ images.next_page_number }}">Neste</a></strong>
+  		{% endif %}
+			<p>&nbsp;</p>
+			<table>
+				<tr>
+					{% for image in images %}
+						<td align="center">
+							<a href="{% url 'view' image.id %}">
+							<img src="{{ MEDIA_URL }}gallery/thumb/{{ image.filename }}" />
+							</a>
+						</td>	
+						{% if forloop.counter|divisibleby:4 %}
+							</tr>
+							<tr>
+						{% endif %}
+					{% endfor %}
+				</tr>
+			</table>
+			<p>&nbsp;</p>
+			{% if images.has_previous %}
+				<strong><a href="?page={{images.previous_page_number }}">Forrige</a></strong>
+			{% endif %}
+			
+			<strong> Side {{ images.number }} av {{ images.paginator.num_pages }}</strong>
+
+			{% if images.has_next %}
+				<strong><a href="?page={{ images.next_page_number }}">Neste</a></strong>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}

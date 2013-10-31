@@ -1,0 +1,21 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block content %}
+	<div id="normalcontent">
+		<h3>Siste opplastede bilder</h3>
+		<div class="contentarea">
+			<table style="width:1030px;">
+			<tr>
+			{% for pic in latest %}
+			<td align="center"><a href="{% url 'view' pic.id %}"><img src="{{ MEDIA_URL }}gallery/thumb/{{ pic.filename }}"/></a></td>
+				{% if forloop.counter|divisibleby:3 %}
+			</tr>
+			<tr>
+				{% endif %}
+			{% endfor %}
+			</tr>
+		</table>
+		</div>
+	</div>
+{% endblock %}

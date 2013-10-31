@@ -1,0 +1,28 @@
+{% extends 'base/index.html' %}
+{% load url from future %}
+
+{% block content %}
+	<div id="normalcontent">
+		<div class="contentarea">
+			<h3>Endre passord</h3>
+			<br />
+			<br />
+			<form action="." method="POST">
+				{% csrf_token %}
+				<input type="password" name="password_one" placeholder="Nytt passord"/><br />
+				<input type="password" name="password_two" placeholder="Gjenta passord"/><br />
+				<br />
+				<input type="submit" value="Endre" />
+			</form>
+			<br />
+			<h3>Endre visningsnavn</h3>
+			<br />
+			<br />
+			<form action="." method="POST">
+				{% csrf_token %}
+				<input type=text" name="name" placeholder="{{ first_name }}"/>
+				<input type="submit" value="Endre">
+			</form>
+		</div>
+	</div>
+{% endblock %}
