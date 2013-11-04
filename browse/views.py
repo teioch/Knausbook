@@ -100,7 +100,7 @@ def get_next_image(bid):
             found = True
         elif int(bid) == get_newest_active_id(bid):
             if Pic.objects.get(id=next_id).active == True:
-                next_image = Pic.objects.get(id=prev_id)
+                next_image = Pic.objects.get(id=next'_id)
                 found = True
             else:
                 next_id = str(int(next_id) - 1)
