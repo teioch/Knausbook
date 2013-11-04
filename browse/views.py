@@ -74,7 +74,7 @@ def get_prev_image(bid):
     found = False
     while not found:
         if int(bid) <= get_oldest_active_id(bid):
-            if Pic.objects.get(id=next_id).active == True:
+            if Pic.objects.get(id=prev_id).active == True:
                 prev_image = Pic.objects.get(id=prev_id)
                 found = True
             else:
