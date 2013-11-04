@@ -46,7 +46,7 @@ def view(request,bid):
     # If user filled out a form on the previous page
     if request.method == "POST":
         if request.POST.get('comment'):
-        	comment_model = set_comment_meta(request,bid)
+            comment_model = set_comment_meta(request,bid)
             if len(comment) > 200:
                 messages.warning(request,'Kommentaren din er på %s tegn. Den kan ikke være lenger enn 200 tegn.' % (len(comment)))
             else:
@@ -70,53 +70,50 @@ def view(request,bid):
         })
 
 def get_prev_image(bid):
-	prev_id = str(int(bid) + 1)
+    prev_id = str(int(bid) + 1)
     found = False
     while not found:
         if int(bid) <= get_oldest_active_id(bid):
             if Pic.objects.get(id=next_id).active == True:
-                prev_image = Pic.objects.get(id=next_id)
-                prevFound = True
+                prev_image = Pic.objects.get(id=prev_id)
+                found = True
             else:
-                next_id = str(int(next_id) + 1)
+                prev_id = str(int(prev_id) + 1)
         elif int(bid) == get_newest_active_id(bid):
             prev_image = Pic.objects.get(id = get_oldest_active_id(bid))
-            prevFound = True
+            found = True
         else:
             if Pic.objects.get(id=prev_id).active == True:
-                prev_image = Pic.objects.get(id=next_id)
-                prevFound = True
+                prev_image = Pic.objects.get(id=prev_id)
+                found = True
             else:
-                prev_id = str(int(next_id) - 1)
+                prev_id = str(int(prev_id) + 1)
     return prev_image
 
 def get_next_image(bid):
-	found = False
-	# Note the use of - 1
-	next_id = str(int(bid) - 1)
+    found = False
+    next_id = str(int(bid) - 1)
 
-	while not found:
-		#If the picture ID is equal or less than the oldest known active ID, the next image will be the oldest image
-		if int(bid) <= get_oldest_active_id(bid):
-	        next_image = Pic.objects.get(id=get_newest_active_id(bid))  
-	        nextFound = True
-	    elif int(bid) == get_newest_active_id(bid):
-	        if Pic.objects.get(id=prev_id).active == True:
-	            next_image = Pic.objects.get(id=prev_id)
-	            nextFound = True
-	        else:
-	            next_id = str(int(prev_id) - 1)
-	    else:
-	        if Pic.objects.get(id=prev_id).active == True:
-	            next_image = Pic.objects.get(id=prev_id)
-	            nextFound = True
-	        else:
-	            next_id = str(int(prev_id) - 1)
-
+    while not found:
+        if int(bid) <= get_oldest_active_id(bid):
+            next_image = Pic.objects.get(id=get_newest_active_id(bid))
+            found = True
+        elif int(bid) == get_newest_active_id(bid):
+            if Pic.objects.get(id=next_id).active == True:
+                next_image = Pic.objects.get(id=prev_id)
+                found = True
+            else:
+                next_id = str(int(next_id) - 1)
+        else:
+            if Pic.objects.get(id=next_id).active == True:
+                next_image = Pic.objects.get(id=next_id)
+                found = True
+            else:
+                next_id = str(int(next_id) - 1)
     return next_image
 
 def set_comment_meta(request, bid):
-	comment = request.POST.get('comment')               # Assign content from comment-field to 'comment'
+    comment = request.POST.get('comment')               # Assign content from comment-field to 'comment'
     comment_model = Comment()                           # Define comment model
     comment_model.picture = Pic.objects.get(id=bid)     # Assign image object to comment model
     comment_model.user = request.user                   # Assign logged in username to user-field in comment model
@@ -137,7 +134,6 @@ def get_oldest_active_id(bid):
             iterator += 1
             if iterator == 50:
                 break
-
     return bid
 
 def get_newest_active_id(bid):
@@ -197,7 +193,7 @@ def edit(request,bid):
         })
 
 def create_new_tag(request):
-	# Assign value from field to 'post_tag'
+    # Assign value from field to 'post_tag'
     post_tag = request.POST['tag']
     try:
         # Try to fetch the inputted tag from the table containing unique examples of tags used
@@ -209,9 +205,9 @@ def create_new_tag(request):
         new_tag.save()              # Save model object and thus writing to database
 
 def affiliate_tag_to_image(post_tag, bid):
-	fetched_tag = Tag.objects.get(title=post_tag)
-	image = Pic.objects.get(id = bid)
-	try:
+    fetched_tag = Tag.objects.get(title=post_tag)
+    image = Pic.objects.get(id = bid)
+    try:
         # Try to get one tag matching user input from the list of tags accociated with the image
         tag = tags.get(title=post_tag)
         # If this is successful, we know that the tag is already accociated with the image, and there is no need to add it again
@@ -219,7 +215,7 @@ def affiliate_tag_to_image(post_tag, bid):
     except ObjectDoesNotExist:
         # If we are unable to fetch the tag from the list, then it has not been accociated with the image and we can perform the affiliation
         already_registered = False
-
+        
     if already_registered:
         messages.warning(request, 'Bildet er allerede tagget med %s' % (post_tag))
     else:
@@ -232,7 +228,7 @@ def affiliate_tag_to_image(post_tag, bid):
         messages.info(request, u'Bildet er nå tagget med %s' % (post_tag))
 
 def delete_tag(request, bid):
-	# Assign tag chosen to be removed
+    # Assign tag chosen to be removed
     rm_tag= Tag.objects.get(title=request.POST['remove_tag'])
     # Fetch image the user was currently reviewing for edit
     rm_pic = Pic.objects.get(id=bid)
