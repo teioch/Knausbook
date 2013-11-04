@@ -36,7 +36,6 @@ def view(request,bid):
     # If image has been previously deactivated, send user backc to the browse overview along with popping a messabe about said picture being removed
     if image.active == False:
         messages.warning(request, 'Dette bildet er slettet.')
-
         return HttpResponseRedirect(reverse('browse'))
     
     # Fetch all tags accociated with the fetched image
@@ -46,17 +45,8 @@ def view(request,bid):
 
     # If user filled out a form on the previous page
     if request.method == "POST":
-        # If the field the user filled out was named 'comment'
         if request.POST.get('comment'):
-            comment = request.POST.get('comment')               # Assign content from comment-field to 'comment'
-            comment_model = Comment()                           # Define comment model
-            comment_model.picture = Pic.objects.get(id=bid)     # Assign image object to comment model
-            comment_model.user = request.user                   # Assign logged in username to user-field in comment model
-            comment_model.comment = comment                     # Assign the comment to comment-field in comment model
-            comment_model.submitted = datetime.datetime.now()   # Assign current date and time to model
-            comment_model.ip = request.META['REMOTE_ADDR']      # Assign IP address of user to model
-            
-            # If the size of the comment is over 200 characters, do not save the model and throw error message
+        	comment_model = set_comment_meta(request,bid)
             if len(comment) > 200:
                 messages.warning(request,'Kommentaren din er på %s tegn. Den kan ikke være lenger enn 200 tegn.' % (len(comment)))
             else:
@@ -67,31 +57,22 @@ def view(request,bid):
     
     # Assign currently logged in user to variable
     currently_logged_in_as = request.user
+    prev_image = get_prev_image(bid)
+    next_image = get_next_image(bid)
 
-    #Get previous and next image. Intentionally contradictionary (next -> prev and prev -> next) to compensate for reverse ordering in database.
-    prev_id = str(int(bid) - 1)
-    next_id = str(int(bid) + 1)
-    nextFound = False
-    prevFound = False
+    return render(request, 'browse/view.html', {
+        'image':image,
+        'next_image':next_image,
+        'prev_image':prev_image,
+        'tags':tags,
+        'comments':comments,
+        'currently_logged_in_as':currently_logged_in_as
+        })
 
-    while not nextFound:
-        if int(bid) <= get_oldest_active_id(bid):
-            next_image = Pic.objects.get(id=get_newest_active_id(bid))  
-            nextFound = True
-        elif int(bid) == get_newest_active_id(bid):
-            if Pic.objects.get(id=prev_id).active == True:
-                next_image = Pic.objects.get(id=prev_id)
-                nextFound = True
-            else:
-                prev_id = str(int(prev_id) - 1)
-        else:
-            if Pic.objects.get(id=prev_id).active == True:
-                next_image = Pic.objects.get(id=prev_id)
-                nextFound = True
-            else:
-                prev_id = str(int(prev_id) - 1)
-
-    while not prevFound:
+def get_prev_image(bid):
+	prev_id = str(int(bid) + 1)
+    found = False
+    while not found:
         if int(bid) <= get_oldest_active_id(bid):
             if Pic.objects.get(id=next_id).active == True:
                 prev_image = Pic.objects.get(id=next_id)
@@ -106,16 +87,44 @@ def view(request,bid):
                 prev_image = Pic.objects.get(id=next_id)
                 prevFound = True
             else:
-                next_id = str(int(next_id) - 1)
+                prev_id = str(int(next_id) - 1)
+    return prev_image
 
-    return render(request, 'browse/view.html', {
-        'image':image,
-        'next_image':next_image,
-        'prev_image':prev_image,
-        'tags':tags,
-        'comments':comments,
-        'currently_logged_in_as':currently_logged_in_as
-        })
+def get_next_image(bid):
+	found = False
+	# Note the use of - 1
+	next_id = str(int(bid) - 1)
+
+	while not found:
+		#If the picture ID is equal or less than the oldest known active ID, the next image will be the oldest image
+		if int(bid) <= get_oldest_active_id(bid):
+	        next_image = Pic.objects.get(id=get_newest_active_id(bid))  
+	        nextFound = True
+	    elif int(bid) == get_newest_active_id(bid):
+	        if Pic.objects.get(id=prev_id).active == True:
+	            next_image = Pic.objects.get(id=prev_id)
+	            nextFound = True
+	        else:
+	            next_id = str(int(prev_id) - 1)
+	    else:
+	        if Pic.objects.get(id=prev_id).active == True:
+	            next_image = Pic.objects.get(id=prev_id)
+	            nextFound = True
+	        else:
+	            next_id = str(int(prev_id) - 1)
+
+    return next_image
+
+def set_comment_meta(request, bid):
+	comment = request.POST.get('comment')               # Assign content from comment-field to 'comment'
+    comment_model = Comment()                           # Define comment model
+    comment_model.picture = Pic.objects.get(id=bid)     # Assign image object to comment model
+    comment_model.user = request.user                   # Assign logged in username to user-field in comment model
+    comment_model.comment = comment                     # Assign the comment to comment-field in comment model
+    comment_model.submitted = datetime.datetime.now()   # Assign current date and time to model
+    comment_model.ip = request.META['REMOTE_ADDR']      # Assign IP address of user to model
+
+    return comment_model
 
 def get_oldest_active_id(bid):
     iterator = 0
@@ -161,76 +170,21 @@ def delete(request,bid):
 # Function to present an edit interface to user, as well as handling edit inputs
 @login_required
 def edit(request,bid):
-    # Fetch a single image from database where id = bid
     image = Pic.objects.get(id = bid)
-    # Fetch all tags accociated with fetched image
-    tags = Tag.objects.filter(picture_tag__picture = image)
-    
-    try:
-        # Try to assign "previous image"
-        prev_image = image.get_next_by_date()
-    except Pic.DoesNotExist:
-        # If there is no previous image, assign the oldest image in the database to previous
-        prev_image = Pic.objects.all().order_by('date')[0]
-    try:
-        # Try to assign "next image"
-        next_image = image.get_previous_by_date()
-    except Pic.DoesNotExist:
-        # If there is no next image, assign the newest image in the database to next
-        next_image = Pic.objects.all().order_by('-date')[0]
+    tags = Tag.objects.filter(picture_tag__picture = image)    
+    prev_image = get_prev_image(bid)
+    next_image = get_next_image(bid)
     
     # If user filled out a form
     if request.method=="POST":
         # If that form was the field with the name "tag"
         if request.POST.get('tag', False):
-            # Assign value from field to 'post_tag'
-            post_tag = request.POST['tag']
-            
-            try:
-                # Try to fetch the inputted tag from the table containing unique examples of tags used
-                exists = Tag.objects.get(title=post_tag)
-            except ObjectDoesNotExist:
-                # If this fetch fails, we know the tag has never been used before and we create it from scratch
-                new_tag = Tag()             # Create Tag model object
-                new_tag.title = post_tag    # Assign 'post_tag' to model
-                new_tag.save()              # Save model object and thus writing to database
-            
-            # Fetch one single tag matching the input from user
-            fetched_tag = Tag.objects.get(title=post_tag)
-        
-            try:
-                # Try to get one tag matching user input from the list of tags accociated with the image
-                tag = tags.get(title=post_tag)
-                # If this is successful, we know that the tag is already accociated with the image, and there is no need to add it again
-                already_registered = True
-            except ObjectDoesNotExist:
-                # If we are unable to fetch the tag from the list, then it has not been accociated with the image and we can perform the affiliation
-                already_registered = False
-
-            if already_registered:
-                messages.warning(request, 'Bildet er allerede tagget med %s' % (post_tag))
-            else:
-                tag_input = Picture_tag()       # Create Picture_tag (picture <-> tag relation table) model
-                tag_input.picture = image       # Assign image to model field
-                tag_input.tag = fetched_tag     # Assign the fetched tag to model field
-                tag_input.save()                # Save model to database
-
-                # Pop result message
-                messages.info(request, u'Bildet er nå tagget med %s' % (post_tag))
-        # endif request.POST['tag']
+            create_new_tag(request)
+            affiliate_tag_to_image(post_tag, bid)
 
         # If user sent a remove tag request
         if request.POST.get('remove_tag', False):
-            # Assign tag chosen to be removed
-            rm_tag= Tag.objects.get(title=request.POST['remove_tag'])
-            # Fetch image the user was currently reviewing for edit
-            rm_pic = Pic.objects.get(id=bid)
-            # Fetch tag requested for deletion from database
-            rm_pic_tag = Picture_tag.objects.get(tag = rm_tag,picture = rm_pic)
-            # Delete tag from database
-            rm_pic_tag.delete()
-
-            messages.info(request, u'Fjernet tag %s fra bildet' % (rm_tag.title))
+           delete_tag(request,bid)
             
         # endif request.POST['remove_tag']
     # endif request.method=="POST" 
@@ -241,6 +195,53 @@ def edit(request,bid):
         'prev_image':prev_image,
         'next_image':next_image
         })
+
+def create_new_tag(request):
+	# Assign value from field to 'post_tag'
+    post_tag = request.POST['tag']
+    try:
+        # Try to fetch the inputted tag from the table containing unique examples of tags used
+        exists = Tag.objects.get(title=post_tag)
+    except ObjectDoesNotExist:
+        # If this fetch fails, we know the tag has never been used before and we create it from scratch
+        new_tag = Tag()             # Create Tag model object
+        new_tag.title = post_tag    # Assign 'post_tag' to model
+        new_tag.save()              # Save model object and thus writing to database
+
+def affiliate_tag_to_image(post_tag, bid):
+	fetched_tag = Tag.objects.get(title=post_tag)
+	image = Pic.objects.get(id = bid)
+	try:
+        # Try to get one tag matching user input from the list of tags accociated with the image
+        tag = tags.get(title=post_tag)
+        # If this is successful, we know that the tag is already accociated with the image, and there is no need to add it again
+        already_registered = True
+    except ObjectDoesNotExist:
+        # If we are unable to fetch the tag from the list, then it has not been accociated with the image and we can perform the affiliation
+        already_registered = False
+
+    if already_registered:
+        messages.warning(request, 'Bildet er allerede tagget med %s' % (post_tag))
+    else:
+        tag_input = Picture_tag()       # Create Picture_tag (picture <-> tag relation table) model
+        tag_input.picture = image       # Assign image to model field
+        tag_input.tag = fetched_tag     # Assign the fetched tag to model field
+        tag_input.save()                # Save model to database
+
+        # Pop result message
+        messages.info(request, u'Bildet er nå tagget med %s' % (post_tag))
+
+def delete_tag(request, bid):
+	# Assign tag chosen to be removed
+    rm_tag= Tag.objects.get(title=request.POST['remove_tag'])
+    # Fetch image the user was currently reviewing for edit
+    rm_pic = Pic.objects.get(id=bid)
+    # Fetch tag requested for deletion from database
+    rm_pic_tag = Picture_tag.objects.get(tag = rm_tag,picture = rm_pic)
+    # Delete tag from database
+    rm_pic_tag.delete()
+    messages.info(request, u'Fjernet tag %s fra bildet' % (rm_tag.title))
+
 
 # This function does the same as 'def view'. The only difference is the ammount of arguments it takes in. This means the two functions could have been merged and have the 
 # variable that only sometimes is used set to "None" by default. This would however require that urls are built differently, that all links directing to this page gets the 
