@@ -13,7 +13,7 @@ def index(request):
     # If user is authenticated
     if request.user.is_authenticated():
         # Set latest to the 9 newest images from database
-        latest = Pic.objects.filter(active=True).order_by('-date')[:9]
+        latest = Pic.objects.filter(active=True).order_by('-id')[:9]
         return render(request,'frontpage/main.html',{'latest':latest})
     # Else if user is not authenticated, let user see the login screen
     else:

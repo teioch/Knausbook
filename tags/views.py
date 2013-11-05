@@ -11,7 +11,7 @@ def list_tags(request):
 @login_required
 def expand(request,t_id):
     #Pick out only the images mentioned with tag_id in 't_id'.
-    image_list = Pic.objects.filter(picture_tag__tag = t_id, active = True).order_by('-date') #QuerySet, fetches images matching id from the tag-list.
+    image_list = Pic.objects.filter(picture_tag__tag = t_id, active = True).order_by('-id') #QuerySet, fetches images matching id from the tag-list.
 
     paginator = Paginator(image_list,48) #Initiate Paginator, a tool for page handling. Arguments (list of objects, desired number of objects per page)
     page = request.GET.get('page') #Fetches current page from URL
